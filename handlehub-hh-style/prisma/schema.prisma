@@ -7,11 +7,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole { USER SELLER ADMIN }
-enum ListingStatus { AVAILABLE RESERVED SOLD HIDDEN }
-enum InvoiceStatus { WAITING DETECTED CONFIRMING PAID UNDERPAID OVERPAID EXPIRED FAILED }
-enum CryptoCurrency { BTC LTC SOL ETH }
-enum EscrowStatus { OPEN FUNDED TRANSFERRING RELEASED DISPUTED CANCELLED }
+enum UserRole {
+  USER
+  SELLER
+  ADMIN
+}
+
+enum ListingStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  HIDDEN
+}
+
+enum InvoiceStatus {
+  WAITING
+  DETECTED
+  CONFIRMING
+  PAID
+  UNDERPAID
+  OVERPAID
+  EXPIRED
+  FAILED
+}
+
+enum CryptoCurrency {
+  BTC
+  LTC
+  SOL
+  ETH
+}
+
+enum EscrowStatus {
+  OPEN
+  FUNDED
+  TRANSFERRING
+  RELEASED
+  DISPUTED
+  CANCELLED
+}
 
 model User {
   id            String   @id @default(cuid())
@@ -156,3 +190,4 @@ model EscrowTransaction {
   updatedAt   DateTime     @updatedAt
   listing     Listing?     @relation(fields: [listingId], references: [id])
 }
+
