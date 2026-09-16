@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function NotFound(){return <main className="mx-auto max-w-xl px-4 py-24 text-center"><div className="text-sm font-bold text-violet-400">404</div><h1 className="mt-3 text-4xl font-black">That handle is gone.</h1><p className="mt-3 text-zinc-500">The page may have moved, expired, or never existed.</p><Link className="btn-primary mt-6" href="/trending">Back to marketplace</Link></main>}

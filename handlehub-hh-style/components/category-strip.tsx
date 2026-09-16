@@ -1,0 +1,5 @@
+import Link from "next/link";
+import { AtSign, Gamepad2, Globe2, MessageCircle, Music2, Play, Shapes, Smartphone } from "lucide-react";
+import { categories } from "@/lib/constants";
+const icons=[AtSign,MessageCircle,Gamepad2,Gamepad2,Shapes,Play,Smartphone,AtSign,Music2,Play,Play,Gamepad2,Globe2,Gamepad2,AtSign,Shapes,Gamepad2,Shapes,Shapes,Gamepad2,MessageCircle];
+export function CategoryStrip({active}:{active?:string}){return <div className="-mx-4 overflow-x-auto px-4 py-3 desktop:-mx-2 desktop:px-2 hh-scrollbar"><div className="flex min-w-max gap-3">{categories.map(([slug,name],i)=>{const Icon=icons[i%icons.length];return <Link key={slug} href={`/${slug}`} className={`group flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-2 rounded-xl border text-center transition ${active===slug?"border-blue-500/45 bg-blue-500/12 text-blue-300":"border-line bg-panel text-gray-400 hover:border-gray-700 hover:bg-panel2 hover:text-gray-200"}`}><Icon className={`h-5 w-5 ${active===slug?"text-blue-400":"text-gray-500 group-hover:text-gray-300"}`}/><span className="max-w-[70px] truncate text-[11px] font-medium">{name}</span></Link>})}</div></div>}

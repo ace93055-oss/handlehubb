@@ -1,0 +1,1 @@
+export default function Loading(){return <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6"><div className="h-48 animate-pulse rounded-3xl border border-line bg-panel"/><div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{Array.from({length:8}).map((_,i)=><div key={i} className="h-64 animate-pulse rounded-2xl border border-line bg-panel"/>)}</div></main>}

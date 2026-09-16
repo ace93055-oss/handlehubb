@@ -1,0 +1,7 @@
+import { PrismaClient, UserRole } from "@prisma/client";
+import Decimal from "decimal.js";
+import { categories } from "../lib/constants";
+import { demoListings } from "../lib/demo-data";
+const db=new PrismaClient();
+async function main(){for(const [i,[slug,name]] of categories.entries())await db.category.upsert({where:{slug},update:{name,sortOrder:i},create:{slug,name,sortOrder:i}});const sellers=[...new Set(demoListings.map(x=>x.seller))];for(const name of sellers){const user=await db.user.upsert({where:{username:name},update:{},create:{username:name,role:UserRole.SELLER}});const sample=demoListings.find(x=>x.seller===name)!;await db.seller.upsert({where:{userId:user.id},update:{},create:{userId:user.id,displayName:name,verified:sample.verified,rating:new Decimal(sample.rating),salesCount:sample.sales}})}for(const x of demoListings){const cat=await db.category.findUniqueOrThrow({where:{slug:x.category}});const user=await db.user.findUniqueOrThrow({where:{username:x.seller}});const seller=await db.seller.findUniqueOrThrow({where:{userId:user.id}});await db.listing.upsert({where:{id:x.id},update:{},create:{id:x.id,slug:x.slug,title:x.title,categoryId:cat.id,sellerId:seller.id,priceUsd:new Decimal(x.priceUsd),description:x.description,images:[],featured:x.featured,verified:x.verified,status:x.status}})}console.log(`Seeded ${demoListings.length} listings`)}
+main().finally(()=>db.$disconnect());

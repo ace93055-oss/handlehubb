@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole { USER SELLER ADMIN }
+enum ListingStatus { AVAILABLE RESERVED SOLD HIDDEN }
+enum InvoiceStatus { WAITING DETECTED CONFIRMING PAID UNDERPAID OVERPAID EXPIRED FAILED }
+enum CryptoCurrency { BTC LTC SOL ETH }
+enum EscrowStatus { OPEN FUNDED TRANSFERRING RELEASED DISPUTED CANCELLED }
+
+model User {
+  id            String   @id @default(cuid())
+  username      String   @unique
+  email         String?  @unique
+  avatarUrl     String?
+  role          UserRole @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  seller        Seller?
+  reviews       Review[] @relation("ReviewAuthor")
+  buyerInvoices Invoice[] @relation("InvoiceBuyer")
+}
+
+model Seller {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  displayName   String
+  verified      Boolean  @default(false)
+  rating        Decimal  @db.Decimal(3, 2) @default(0)
+  salesCount    Int      @default(0)
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listings      Listing[]
+  reviews       Review[] @relation("SellerReviews")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String?
+  icon        String?
+  sortOrder   Int       @default(0)
+  active      Boolean   @default(true)
+  listings    Listing[]
+}
+
+model Listing {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  title         String
+  categoryId    String
+  sellerId      String
+  priceUsd      Decimal       @db.Decimal(12, 2)
+  description   String
+  images        String[]
+  featured      Boolean       @default(false)
+  verified      Boolean       @default(false)
+  status        ListingStatus @default(AVAILABLE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  category      Category      @relation(fields: [categoryId], references: [id])
+  seller        Seller        @relation(fields: [sellerId], references: [id])
+  invoices      Invoice[]
+  escrowDeals   EscrowTransaction[]
+
+  @@index([categoryId, status])
+  @@index([featured, createdAt])
+}
+
+model Invoice {
+  id                String         @id @default(cuid())
+  publicId          String         @unique
+  listingId         String
+  buyerId           String?
+  buyerSession      String
+  currency          CryptoCurrency
+  fiatCurrency      String         @default("USD")
+  fiatAmount        Decimal        @db.Decimal(12, 2)
+  baseCryptoAmount  Decimal        @db.Decimal(36, 18)
+  cryptoAmount      Decimal        @db.Decimal(36, 18)
+  walletAddress     String
+  exchangeRate      Decimal        @db.Decimal(24, 8)
+  status            InvoiceStatus  @default(WAITING)
+  expiresAt         DateTime
+  createdAt         DateTime       @default(now())
+  paidAt            DateTime?
+  transactionHash   String?        @unique
+  detectedAmount    Decimal?       @db.Decimal(36, 18)
+  confirmations     Int            @default(0)
+  lastCheckedAt     DateTime?
+  failureReason     String?
+  listing           Listing        @relation(fields: [listingId], references: [id])
+  buyer             User?          @relation("InvoiceBuyer", fields: [buyerId], references: [id])
+  payments          Payment[]
+
+  @@index([walletAddress, currency, createdAt])
+  @@index([status, expiresAt])
+}
+
+model Payment {
+  id              String         @id @default(cuid())
+  invoiceId       String
+  transactionHash String         @unique
+  currency        CryptoCurrency
+  amount          Decimal        @db.Decimal(36, 18)
+  confirmations   Int            @default(0)
+  firstSeenAt     DateTime       @default(now())
+  confirmedAt     DateTime?
+  raw             Json?
+  invoice         Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id              String         @id @default(cuid())
+  transactionHash String         @unique
+  currency        CryptoCurrency
+  walletAddress   String
+  amount          Decimal        @db.Decimal(36, 18)
+  blockHeight     BigInt?
+  confirmations   Int            @default(0)
+  observedAt      DateTime       @default(now())
+  raw             Json?
+
+  @@index([walletAddress, currency])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  sellerId  String
+  authorId  String
+  rating    Int
+  body      String?
+  createdAt DateTime @default(now())
+  seller    Seller   @relation("SellerReviews", fields: [sellerId], references: [id], onDelete: Cascade)
+  author    User     @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([sellerId, authorId])
+}
+
+model EscrowTransaction {
+  id          String       @id @default(cuid())
+  publicId    String       @unique
+  listingId   String?
+  buyerHandle String
+  sellerHandle String
+  amountUsd   Decimal      @db.Decimal(12, 2)
+  feeUsd      Decimal      @db.Decimal(12, 2)
+  status      EscrowStatus @default(OPEN)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  listing     Listing?     @relation(fields: [listingId], references: [id])
+}

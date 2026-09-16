@@ -1,0 +1,6 @@
+"use client";
+import { useState } from "react";
+import { Bot,Radio,UserRound } from "lucide-react";
+import { ListingPurchase } from "./listing-purchase";
+const plans=[{id:"hold-channel",name:"Channel / Group",desc:"Verify a channel or group",price:89,icon:Radio},{id:"hold-profile",name:"Profile",desc:"Verify a personal account",price:49,icon:UserRound},{id:"hold-bot",name:"Bot",desc:"Verify a Telegram bot",price:69,icon:Bot}];
+export function HoldCheckout(){const[selected,setSelected]=useState(0);const plan=plans[selected];return <><div className="mt-7 text-sm font-semibold text-gray-200">Purchase</div><div className="mt-3 grid gap-3 md:grid-cols-3">{plans.map(({name,desc,price,icon:Icon},i)=><button onClick={()=>setSelected(i)} key={name} className={`hh-card p-4 text-left ${selected===i?"border-blue-500/40 bg-blue-500/5":""}`}><Icon className="h-5 w-5 text-blue-400"/><div className="mt-4 text-sm font-semibold text-gray-100">{name}</div><div className="mt-1 min-h-9 text-xs leading-5 text-gray-600">{desc}</div><div className="mt-4 text-xl font-bold text-white">${price}<span className="text-[11px] font-normal text-gray-600"> / year</span></div></button>)}</div><div className="mx-auto mt-4 max-w-md"><ListingPurchase listingId={plan.id} price={plan.price} title={plan.name}/></div></>}
